@@ -82,6 +82,9 @@ func AddKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 			&shim.Column{Value: &shim.Column_String_{String_: riskLevel}},
 		},
 	})
+	if !ok && err == nil {
+			return nil, errors.New("Error in inserting KYC record.")
+	}
 	myLogger.Debug("Congratulations !!! Successfully added KYC")
 	return nil, err
 }
