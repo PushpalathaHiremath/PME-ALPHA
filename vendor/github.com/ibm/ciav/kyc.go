@@ -54,7 +54,6 @@ func CreateKycTable(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 */
 func AddKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	myLogger.Debug("Adding KYC record ...")
-  var err error
 	// if len(args) != 5 {
 	// 	return nil, errors.New("Incorrect number of arguments. Expecting 5")
 	// }
@@ -71,58 +70,18 @@ func AddKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	source := args[3]
 	riskLevel := args[4]
 
-	isSuperAdmin, _ := stub.VerifyAttribute("role", []byte("Superadmin"))
-	isManager, _ := stub.VerifyAttribute("role", []byte("Manager"))
-	if isManager || isSuperAdmin {
-		// customerId = args[0]
-		// kycStatus = args[1]
-		// lastUpdated = args[2]
-		// source = args[3]
-		// riskLevel = args[4]
-		ok, err := stub.InsertRow("KYC", shim.Row{
-			Columns: []*shim.Column{
-				&shim.Column{Value: &shim.Column_String_{String_: dummyValue}},
-				&shim.Column{Value: &shim.Column_String_{String_: customerId}},
-				&shim.Column{Value: &shim.Column_String_{String_: kycStatus}},
-				&shim.Column{Value: &shim.Column_String_{String_: lastUpdated}},
-				&shim.Column{Value: &shim.Column_String_{String_: source}},
-				&shim.Column{Value: &shim.Column_String_{String_: riskLevel}},
-			},
-		})
-
-		if !ok && err == nil {
-			return nil, errors.New("Error in adding KYC record.")
-		}
-	}else{
-		// kycStr, _ := GetKYC(stub, args[0])
-		// var kyc []Identification
-		// err := json.Unmarshal([]byte(string(kycStr)), &kyc)
-		// if err == nil {
-		// 	// return nil, errors.New("Error in getting KYC record.")
-		// }
-		// customerId := args[0]
-		// kycStatus := args[1]
-		// lastUpdated := args[2]
-		// source := args[3]
-		// riskLevel = kyc.KycRiskLevel
-
-		ok, err := stub.InsertRow("KYC", shim.Row{
-			Columns: []*shim.Column{
-				&shim.Column{Value: &shim.Column_String_{String_: dummyValue}},
-				&shim.Column{Value: &shim.Column_String_{String_: customerId}},
-				&shim.Column{Value: &shim.Column_String_{String_: kycStatus}},
-				&shim.Column{Value: &shim.Column_String_{String_: lastUpdated}},
-				&shim.Column{Value: &shim.Column_String_{String_: source}},
-				&shim.Column{Value: &shim.Column_String_{String_: ""}},
-			},
-		})
-
-		if !ok && err == nil {
-			return nil, errors.New("Error in adding KYC record.")
-		}
-	}
-
-
+	// isSuperAdmin, _ := stub.VerifyAttribute("role", []byte("Superadmin"))
+	// isManager, _ := stub.VerifyAttribute("role", []byte("Manager"))
+	ok, err := stub.InsertRow("KYC", shim.Row{
+		Columns: []*shim.Column{
+			&shim.Column{Value: &shim.Column_String_{String_: dummyValue}},
+			&shim.Column{Value: &shim.Column_String_{String_: customerId}},
+			&shim.Column{Value: &shim.Column_String_{String_: kycStatus}},
+			&shim.Column{Value: &shim.Column_String_{String_: lastUpdated}},
+			&shim.Column{Value: &shim.Column_String_{String_: source}},
+			&shim.Column{Value: &shim.Column_String_{String_: riskLevel}},
+		},
+	})
 	myLogger.Debug("Congratulations !!! Successfully added KYC")
 	return nil, err
 }
@@ -148,58 +107,25 @@ func UpdateKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 		source := args[3]
 		riskLevel := args[4]
 
-		isSuperAdmin, _ := stub.VerifyAttribute("role", []byte("Superadmin"))
-		isManager, _ := stub.VerifyAttribute("role", []byte("Manager"))
-		if isManager || isSuperAdmin {
-			ok, err := stub.ReplaceRow("KYC", shim.Row{
-				Columns: []*shim.Column{
-					&shim.Column{Value: &shim.Column_String_{String_: dummyValue}},
-					&shim.Column{Value: &shim.Column_String_{String_: customerId}},
-					&shim.Column{Value: &shim.Column_String_{String_: kycStatus}},
-					&shim.Column{Value: &shim.Column_String_{String_: lastUpdated}},
-					&shim.Column{Value: &shim.Column_String_{String_: source}},
-					&shim.Column{Value: &shim.Column_String_{String_: riskLevel}},
-				},
-			})
+		// isSuperAdmin, _ := stub.VerifyAttribute("role", []byte("Superadmin"))
+		// isManager, _ := stub.VerifyAttribute("role", []byte("Manager"))
 
-			if !ok && err == nil {
-				return nil, errors.New("Error in adding KYC record.")
-			}
-		}else{
-			ok, err := stub.ReplaceRow("KYC", shim.Row{
-				Columns: []*shim.Column{
-					&shim.Column{Value: &shim.Column_String_{String_: dummyValue}},
-					&shim.Column{Value: &shim.Column_String_{String_: customerId}},
-					&shim.Column{Value: &shim.Column_String_{String_: kycStatus}},
-					&shim.Column{Value: &shim.Column_String_{String_: lastUpdated}},
-					&shim.Column{Value: &shim.Column_String_{String_: source}},
-				},
-			})
+		ok, err := stub.ReplaceRow("KYC", shim.Row{
+			Columns: []*shim.Column{
+				&shim.Column{Value: &shim.Column_String_{String_: dummyValue}},
+				&shim.Column{Value: &shim.Column_String_{String_: customerId}},
+				&shim.Column{Value: &shim.Column_String_{String_: kycStatus}},
+				&shim.Column{Value: &shim.Column_String_{String_: lastUpdated}},
+				&shim.Column{Value: &shim.Column_String_{String_: source}},
+				&shim.Column{Value: &shim.Column_String_{String_: riskLevel}},
+			},
+		})
 
-			if !ok && err == nil {
+		if !ok && err == nil {
 				return nil, errors.New("Error in adding KYC record.")
-			}
 		}
-	// customerId := args[0]
-	// kycStatus := args[1]
-	// lastUpdated := args[2]
-	// source := args[3]
-	//
-	// ok, err := stub.ReplaceRow("KYC", shim.Row{
-	// 	Columns: []*shim.Column{
-	// 		&shim.Column{Value: &shim.Column_String_{String_: dummyValue}},
-	// 		&shim.Column{Value: &shim.Column_String_{String_: customerId}},
-	// 		&shim.Column{Value: &shim.Column_String_{String_: kycStatus}},
-	// 		&shim.Column{Value: &shim.Column_String_{String_: lastUpdated}},
-	// 		&shim.Column{Value: &shim.Column_String_{String_: "2"}},
-	// 		&shim.Column{Value: &shim.Column_String_{String_: source}},
-	// 	},
-	// })
-	//
-	// if !ok && err == nil {
-	// 	return nil, errors.New("Error in updating KYC record.")
-	// }
-	// myLogger.Debug("Congratulations !!! Successfully updated")
+
+	myLogger.Debug("Congratulations !!! Successfully updated KYC")
 	return nil, err
 }
 
@@ -225,14 +151,16 @@ func GetKYC(stub *shim.ChaincodeStub, customerId string) (string, string, error)
 	// jsonResp = jsonResp + ",\"role\":\"" + string(callerRole) + "\""
 	jsonResp = jsonResp + ",\"source\":\"" + row.Columns[4].GetString_() + "\""
 
-	isSuperAdmin, _ := stub.VerifyAttribute("role", []byte("Superadmin"))
-	isManager, _ := stub.VerifyAttribute("role", []byte("Manager"))
+	// isSuperAdmin, _ := stub.VerifyAttribute("role", []byte("Superadmin"))
+	// isManager, _ := stub.VerifyAttribute("role", []byte("Manager"))
 
-	if isSuperAdmin || isManager {
-		jsonResp = jsonResp + ",\"riskLevel\":\"" + row.Columns[5].GetString_() + "\""
-	}else{
-		jsonResp = jsonResp + ",\"riskLevel\":\"\""
-	}
+	// if isSuperAdmin || isManager {
+	// 	jsonResp = jsonResp + ",\"riskLevel\":\"" + row.Columns[5].GetString_() + "\""
+	// }else{
+	// 	jsonResp = jsonResp + ",\"riskLevel\":\"\""
+	// }
+
+	jsonResp = jsonResp + ",\"riskLevel\":\"" + row.Columns[5].GetString_() + "\""
 	jsonResp = jsonResp +"}"
 
 	return jsonResp, row.Columns[5].GetString_(), nil
