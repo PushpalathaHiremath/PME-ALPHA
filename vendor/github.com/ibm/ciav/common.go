@@ -275,7 +275,7 @@ func CanModifyKYCTable(stub *shim.ChaincodeStub)(bool){
 	// "KycStatus":      "R",
 	// "KycRiskLevel":   "N",
 	// "LastUpdated":    "R",
-	callerRole := GetCallerRole(stub)
+	// callerRole := GetCallerRole(stub)
 
 	if visibility["KycStatus"]=="W" && visibility["KycRiskLevel"]=="W" && visibility["LastUpdated"]=="W" {
 		// if riskLevel == "3"{
