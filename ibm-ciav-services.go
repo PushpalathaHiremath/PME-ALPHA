@@ -12,8 +12,11 @@ import (
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/ibm/ciav"
+	"github.com/ibm/pme"
 	"github.com/op/go-logging"
 	"strconv"
+	"io/ioutil"
+	"strings"
 )
 
 var myLogger = logging.MustGetLogger("customer_details")
@@ -22,83 +25,88 @@ var dummyValue = "99999"
 type ServicesChaincode struct {
 }
 
-type Identification struct {
-	CustomerId     string
-	IdentityNumber string
-	PoiType        string
-	PoiDoc         string
-	Source         string
-}
-
-type PersonalDetails struct {
-	CustomerId   string
-	FirstName    string
-	LastName     string
-	Sex          string
-	EmailId      string
-	Dob          string
-	PhoneNumber  string
-	Occupation   string
-	AnnualIncome string
-	IncomeSource string
-	Source       string
-}
-
-type Kyc struct {
-	CustomerId  string
-	KycStatus   string
-	LastUpdated string
-	Source      string
-	KycRiskLevel string
-}
-
-type Address struct {
-	CustomerId  string
-	AddressId   string
-	AddressType string
-	DoorNumber  string
-	Street      string
-	Locality    string
-	City        string
-	State       string
-	Pincode     string
-	PoaType     string
-	PoaDoc      string
-	Source      string
-}
-
-type Customer struct {
-	Identification  []Identification
-	PersonalDetails PersonalDetails
-	Kyc             Kyc
-	Address         []Address
+func readFile(fileName string)([]string , error){
+	myLogger.Debugf("Open file: ", fileName)
+	contents, err := ioutil.ReadFile(fileName)
+		if err != nil {
+			return nil, err
+		}
+		lines := strings.Split(string(contents), string('\n'))
+		var values []string
+		for _, line := range lines {
+			if line != "" {
+					values = append(values, strings.TrimSpace(line))
+			}
+		}
+		return values, nil
 }
 
 /*
    Deploy KYC data model
 */
-func (t *ServicesChaincode) Init(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+	var err error
+	pme.BUCKET_CRITERIAS, err = readFile("./conf/bucket-criteria.txt")
+	if err != nil{
+			myLogger.Debugf("Error reading bucket criteria configuration.",err)
+	}
+
+	pme.ANONYMOUS, err = readFile("./conf/anonymous.txt")
+	if err != nil{
+			myLogger.Debugf("Error reading anonymous dictionary.",err)
+	}
+
+	pme.NICKNAMES = make(map[string]string)
+	nickNames,_ := readFile("./conf/nicknames.txt")
+	if err != nil{
+			myLogger.Debugf("Error reading nicknames dictionary.",err)
+	}
+	for i := 0; i < len(nickNames); i++ {
+		if nickNames[i] != "" {
+			prop := strings.Split(nickNames[i], "=")
+			pme.NICKNAMES[strings.TrimSpace(prop[0])]=strings.TrimSpace(prop[1])
+		}
+	}
+
+	pme.COMPARISON_ATTR, err = readFile("./conf/comparison-attr.txt")
+	if err != nil{
+			myLogger.Debugf("Error reading comparison dictionary.",err)
+	}
+
+	pme.InitMatching()
 	ciav.GetVisibility(ciav.GetCallerRole(stub))
 	ciav.CreateIdentificationTable(stub, args)
 	ciav.CreateCustomerTable(stub, args)
 	ciav.CreateKycTable(stub, args)
 	ciav.CreateAddressTable(stub, args)
+	for _,bucket := range pme.BUCKET_CRITERIAS {
+			pme.CreateBucketHashTable(stub, bucket)
+	}
+	pme.CreateComparisonStringTable(stub)
 	return nil, nil
 }
 
 /*
   Add Customer record
 */
-func (t *ServicesChaincode) addCIAV(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *ServicesChaincode) addCIAV(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	myLogger.Debugf("Adding Customer record started...")
+	myLogger.Debugf(args[0])
+
 	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+		return nil, errors.New("Incorrect number of arguments for addCIAV. Expecting 1")
 	}
 
 	myLogger.Debugf("Adding Customer record ...")
-	var Cust Customer
+	var Cust ciav.Customer
 	err := json.Unmarshal([]byte(string(args[0])), &Cust)
 	if err != nil {
 		fmt.Println("Error is :", err)
+	}
+
+	data, isCDExists := pme.DuplicateExists(stub, Cust)
+	if isCDExists {
+		return nil, errors.New("ERROR : Add failed. Duplicate customer - Data already exists.")
 	}
 
 	for i := range Cust.Identification {
@@ -117,21 +125,31 @@ func (t *ServicesChaincode) addCIAV(stub *shim.ChaincodeStub, args []string) ([]
 			Cust.Address[i].DoorNumber, Cust.Address[i].Street, Cust.Address[i].Locality, Cust.Address[i].City, Cust.Address[i].State,
 			Cust.Address[i].Pincode, Cust.Address[i].PoaType, Cust.Address[i].PoaDoc, Cust.Address[i].Source})
 	}
-	return nil, nil
+	// match data using PME
+	pme.CollectMatchData(stub, Cust, data)
+
+	myLogger.Debugf("Add . . .")
+	return []byte("Add Successful...."), nil
 }
 
 /*
  Update customer record
 */
-func (t *ServicesChaincode) updateCIAV(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func (t *ServicesChaincode) updateCIAV(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1")
+		return nil, errors.New("Incorrect number of arguments for updateCIAV. Expecting 1")
 	}
 
-	var Cust Customer
+	var Cust ciav.Customer
 	err := json.Unmarshal([]byte(string(args[0])), &Cust)
 	if err != nil {
 		fmt.Println("Error is :", err)
+	}
+
+	isCDModified := false
+	updatedCD, _ := pme.GetCriticalDataModified(stub, Cust)
+	if len(updatedCD) != 0{
+		isCDModified = true
 	}
 	if ciav.CanModifyIdentificationTable(stub){
 		for i := range Cust.Identification {
@@ -155,13 +173,19 @@ func (t *ServicesChaincode) updateCIAV(stub *shim.ChaincodeStub, args []string) 
 				Cust.Address[i].Pincode, Cust.Address[i].PoaType, Cust.Address[i].PoaDoc, Cust.Address[i].Source})
 		}
 	}
+
+	if isCDModified {
+		updatedCS,_ := pme.UpdateComparisonString(stub, Cust.PersonalDetails.CustomerId, updatedCD)
+		// pme.UpdateBuckets(stub, ciav.BUCKET_CRITERIA1, Cust.PersonalDetails.CustomerId, updatedCS)
+		pme.UpdateBuckets(stub, Cust.PersonalDetails.CustomerId, updatedCS, "update")
+	}
 	return nil, nil
 }
 
 /*
    Invoke : addCIAV and updateCIAV
 */
-func (t *ServicesChaincode) Invoke(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *ServicesChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
 	if function == "addCIAV" {
 		// add customer
@@ -177,91 +201,65 @@ func (t *ServicesChaincode) Invoke(stub *shim.ChaincodeStub, function string, ar
 /*
 	Get Customer record by customer id or PAN number
 */
-func (t *ServicesChaincode) Query(stub *shim.ChaincodeStub, function string, args []string) ([]byte, error) {
+func (t *ServicesChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	if function == "getCIAV" {
 		return t.getCIAV(stub, args)
-	} else if function == "getKYCStats" {
-		return t.GetKYCStats(stub)
+	} else if function == "searchRecords" {
+		return t.searchRecords(stub, args)
+	}else if function == "getKYCStats" {
+		return t.getKYCStats(stub)
 	}
 	return nil, errors.New("Received unknown function invocation")
 }
-
-func (t *ServicesChaincode) getCIAV(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	var jsonResp string
-	var customerIds []string
-	var err error
-
-	var identificationStr string
-	var customerStr string
-	var kycStr string
-	var addressStr string
-	var riskLevel string
-	if args[0] == "PAN" {
-		customerIds, err = ciav.GetCustomerID(stub, args[1])
-		// jsonResp = "["
-		for i := range customerIds {
-			customerId := customerIds[i]
-			identificationStr, err = ciav.GetIdentification(stub, customerId)
-			customerStr, err = ciav.GetCustomer(stub, customerId)
-			kycStr, riskLevel, err = ciav.GetKYC(stub, customerId)
-			addressStr, err = ciav.GetAddress(stub, customerId)
-
-			if i != 0 {
-				jsonResp = jsonResp + ","
-			}
-			jsonResp = jsonResp + "{\"Identification\":" + identificationStr +
-				",\"PersonalDetails\":" + customerStr +
-				",\"KYC\":" + kycStr +
-				",\"address\":" + addressStr + "}"
-		}
-		// jsonResp = jsonResp + "]"
-	} else if args[0] == "CUST_ID" {
-		customerId := args[1]
-		identificationStr, err = ciav.GetIdentification(stub, customerId)
-		customerStr, err = ciav.GetCustomer(stub, customerId)
-		kycStr, riskLevel, err = ciav.GetKYC(stub, customerId)
-		addressStr, err = ciav.GetAddress(stub, customerId)
-
-		jsonResp = "{\"Identification\":" + identificationStr +
-			",\"PersonalDetails\":" + customerStr +
-			",\"KYC\":" + kycStr +
-			",\"address\":" + addressStr + "}"
-	} else {
-		return nil, errors.New("Invalid arguments. Please query by CUST_ID or PAN")
+func (t *ServicesChaincode) searchRecords(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments for searchRecords. Expecting 2")
 	}
+	jsonResp := pme.SearchRecords(stub, args[0], args[1])
 
-	callerRole := ciav.GetCallerRole(stub)
-	allowedActions := "{\"updateKYCDocs\":\""
-	myLogger.Debugf("Risk Level : ",riskLevel)
-	if riskLevel == "3"{
-		allowedActions = allowedActions + "true"
-	}else if riskLevel == "2"{
-		if callerRole == "Superadmin" || callerRole == "Manager" || callerRole == "RelationalManager"{
-			allowedActions = allowedActions + "true"
-		}else{
-			allowedActions = allowedActions + "false"
-		}
-	}else if riskLevel == "1"{
-		if callerRole == "Superadmin" || callerRole == "Manager"{
-			allowedActions = allowedActions + "true"
-		}else{
-			allowedActions = allowedActions + "false"
-		}
-	}
-	allowedActions = allowedActions + "\"}"
-
-	responseStr := "{\"data\":" + jsonResp + "," +
-		"\"visibility\":" + ciav.GetVisibility(ciav.GetCallerRole(stub)) + "," +
-		"\"allowedActions\":" + allowedActions +
-		"}"
-	bytes, err := json.Marshal(responseStr)
+	// customerRecord,_ := ciav.GetCustomerRecord(stub, args[0])
+	// var Cust ciav.Customer
+	// err := json.Unmarshal([]byte(customerRecord), &Cust)
+	//
+	// jsonResp := ciav.SearchMatches(stub, Cust)
+	bytes, err := json.Marshal(jsonResp)
 	if err != nil {
 		return nil, errors.New("Error converting kyc record")
 	}
 	return bytes, nil
 }
 
-func (t *ServicesChaincode) GetKYCStats(stub *shim.ChaincodeStub) ([]byte, error) {
+func (t *ServicesChaincode) getCIAV(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments for getCIAV. Expecting 2")
+	}
+	var jsonResp string
+	var customerIds []string
+	var err error
+
+	if args[0] == "PAN" {
+		customerIds, err = ciav.GetCustomerID(stub, args[1])
+		// jsonResp = "["
+		for i := range customerIds {
+			if i != 0 {
+				jsonResp = jsonResp + ","
+			}
+			jsonResp = ciav.GetCustomerData(stub, customerIds[i])
+		}
+		// jsonResp = jsonResp + "]"
+	} else if args[0] == "CUST_ID" {
+		jsonResp = ciav.GetCustomerData(stub, args[1])
+	} else {
+		return nil, errors.New("Invalid arguments. Please query by CUST_ID or PAN")
+	}
+	bytes, err := json.Marshal(jsonResp)
+	if err != nil {
+		return nil, errors.New("Error converting kyc record")
+	}
+	return bytes, nil
+}
+
+func (t *ServicesChaincode) getKYCStats(stub shim.ChaincodeStubInterface) ([]byte, error) {
 	var err error
 
 	var columns []shim.Column
