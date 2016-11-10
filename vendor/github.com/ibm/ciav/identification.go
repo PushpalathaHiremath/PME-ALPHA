@@ -11,11 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/op/go-logging"
 	"strings"
 )
 
-var myLogger = logging.MustGetLogger("customer_identity_details")
 var dummyValue = "99999"
 
 type Identification struct {
@@ -35,7 +33,7 @@ type Identification struct {
 /*
  Create Identification table
 */
-func CreateIdentificationTable(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func CreateIdentificationTable(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// myLogger.Debug("Init Identification Chaincode...")
 	if len(args) != 0 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 0")
@@ -65,7 +63,7 @@ func CreateIdentificationTable(stub *shim.ChaincodeStub, args []string) ([]byte,
 /*
 	add Identification record
 */
-func AddIdentification(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func AddIdentification(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	myLogger.Debug("Add Identification record ...")
 	if len(args) != 5 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 5")
@@ -102,7 +100,7 @@ func AddIdentification(stub *shim.ChaincodeStub, args []string) ([]byte, error) 
 /*
  Update Identification record
 */
-func UpdateIdentification(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func UpdateIdentification(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// myLogger.Debug("Update Identification record ...")
 
 	if len(args) != 5 {
@@ -204,7 +202,7 @@ func UpdateIdentification(stub *shim.ChaincodeStub, args []string) ([]byte, erro
 /*
 	Get Identification record
 */
-func GetIdentification(stub *shim.ChaincodeStub, customerId string) (string, error) {
+func GetIdentification(stub shim.ChaincodeStubInterface, customerId string) (string, error) {
 	var err error
 	// myLogger.Debugf("Get identification record for customer : [%s]", string(customerId))
 
@@ -221,7 +219,7 @@ func GetIdentification(stub *shim.ChaincodeStub, customerId string) (string, err
 	jsonRespBuffer.WriteString("[")
 	for i := range rows {
 		row := rows[i]
-		// myLogger.Debugf("Identification rows [%s], is : [%s]", i, row)
+		myLogger.Debugf("Identification rows [%s], is : [%s]", i, row)
 		fmt.Println(row)
 		if i != 0 {
 			jsonRespBuffer.WriteString(",")
@@ -240,7 +238,7 @@ func GetIdentification(stub *shim.ChaincodeStub, customerId string) (string, err
 /*
 	Update ID relation table
 */
-func updateIDRelation(stub *shim.ChaincodeStub, identityNumber string, customerId string, functionType string) (string, error) {
+func updateIDRelation(stub shim.ChaincodeStubInterface, identityNumber string, customerId string, functionType string) (string, error) {
 	var columns []shim.Column
 	col1 := shim.Column{Value: &shim.Column_String_{String_: identityNumber}}
 	columns = append(columns, col1)

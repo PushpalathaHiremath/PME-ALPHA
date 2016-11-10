@@ -12,6 +12,21 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
+type Address struct {
+	CustomerId  string
+	AddressId   string
+	AddressType string
+	DoorNumber  string
+	Street      string
+	Locality    string
+	City        string
+	State       string
+	Pincode     string
+	PoaType     string
+	PoaDoc      string
+	Source      string
+}
+
 /*
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 																				Address
@@ -21,7 +36,7 @@ import (
 /*
 	Create address table
 */
-func CreateAddressTable(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func CreateAddressTable(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	//	myLogger.Debug("Creating Address Table ...")
 	if len(args) != 0 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 0")
@@ -52,7 +67,7 @@ func CreateAddressTable(stub *shim.ChaincodeStub, args []string) ([]byte, error)
 /*
 	Add Address record
 */
-func AddAddress(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func AddAddress(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// myLogger.Debug("Adding Address record ...")
 
 	if len(args) != 12 {
@@ -95,7 +110,7 @@ func AddAddress(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	return nil, err
 }
 
-func UpdateAddress(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func UpdateAddress(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	myLogger.Debug("Updating address record ...")
 
 	if len(args) != 12 {
@@ -142,7 +157,7 @@ func UpdateAddress(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 /*
  Get address record
 */
-func GetAddress(stub *shim.ChaincodeStub, customerId string) (string, error) {
+func GetAddress(stub shim.ChaincodeStubInterface, customerId string) (string, error) {
 	var err error
 	// myLogger.Debugf("Getting address record for customer : [%s]", string(customerId))
 

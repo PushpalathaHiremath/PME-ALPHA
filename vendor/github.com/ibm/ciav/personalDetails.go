@@ -11,6 +11,20 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
+type PersonalDetails struct {
+	CustomerId   string
+	FirstName    string
+	LastName     string
+	Sex          string
+	EmailId      string
+	Dob          string
+	PhoneNumber  string
+	Occupation   string
+	AnnualIncome string
+	IncomeSource string
+	Source       string
+}
+
 /*
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 																				Customer
@@ -20,7 +34,7 @@ import (
 /*
 	Create customer table
 */
-func CreateCustomerTable(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func CreateCustomerTable(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// myLogger.Debug("Creating Customer table...")
 	if len(args) != 0 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 0")
@@ -50,7 +64,7 @@ func CreateCustomerTable(stub *shim.ChaincodeStub, args []string) ([]byte, error
 /*
 	Add customer record
 */
-func AddCustomer(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func AddCustomer(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	myLogger.Debug("Adding Customer record ...")
 
 	if len(args) != 11 {
@@ -90,14 +104,14 @@ func AddCustomer(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 	if !ok && err == nil {
 		return nil, errors.New("Error in adding customer record.")
 	}
-	myLogger.Debug("Congratulations !!! Successfully added ", firstName)
+	myLogger.Debug("Congratulations !!! Successfully added PersonalDetails", firstName)
 	return nil, err
 }
 
 /*
 	Update customer record
 */
-func UpdateCustomer(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func UpdateCustomer(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// myLogger.Debug("Updating Customer record ...")
 
 	if len(args) != 11 {
@@ -145,9 +159,9 @@ func UpdateCustomer(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 /*
  Get customer record
 */
-func GetCustomer(stub *shim.ChaincodeStub, customerId string) (string, error) {
+func GetCustomer(stub shim.ChaincodeStubInterface, customerId string) (string, error) {
 	var err error
-	// myLogger.Debugf("Get personal details record for customer : [%s]", string(customerId))
+	myLogger.Debugf("Get personal details record for customer : [%s]", customerId)
 
 	var columns []shim.Column
 	col1 := shim.Column{Value: &shim.Column_String_{String_: customerId}}
@@ -159,6 +173,9 @@ func GetCustomer(stub *shim.ChaincodeStub, customerId string) (string, error) {
 		return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
 	}
 
+	// if row == nil {
+	// 	myLogger.Debugf("ERROR : Not found : ", customerId)
+	// }
 	jsonResp := "{\"customerId\":\"" + row.Columns[0].GetString_() + "\"" +
 		",\"firstName\":\"" + row.Columns[1].GetString_() + "\"" +
 		",\"lastName\":\"" + row.Columns[2].GetString_() + "\"" +

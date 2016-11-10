@@ -8,14 +8,23 @@ package ciav
 import (
 	"bytes"
 	"fmt"
+	"github.com/op/go-logging"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"strings"
 )
 
+var myLogger = logging.MustGetLogger("ciav-details")
 var Superadmin map[string]string
 var Manager map[string]string
 var RelationalManager map[string]string
 var Helpdesk map[string]string
+
+type Customer struct {
+	Identification  []Identification
+	PersonalDetails PersonalDetails
+	Kyc             Kyc
+	Address         []Address
+}
 
 func GetVisibility(callerRole string)(string) {
 	Superadmin = map[string]string{
@@ -159,7 +168,7 @@ func GetVisibility(callerRole string)(string) {
 /*
 	Get all rows corresponding to the partial keys given
 */
-func GetAllRows(stub *shim.ChaincodeStub, tableName string, columns []shim.Column) ([]shim.Row, error) {
+func GetAllRows(stub shim.ChaincodeStubInterface, tableName string, columns []shim.Column) ([]shim.Row, error) {
 	rowChannel, err := stub.GetRows(tableName, columns)
 	if err != nil {
 		// myLogger.Debugf("Failed retriving address details for : [%s]", err)
@@ -172,7 +181,6 @@ func GetAllRows(stub *shim.ChaincodeStub, tableName string, columns []shim.Colum
 			if !ok {
 				rowChannel = nil
 			} else {
-				// myLogger.Debugf("Fetching row : [%s]", temprow.Columns[0].GetString_())
 				rows = append(rows, temprow)
 			}
 		}
@@ -186,7 +194,7 @@ func GetAllRows(stub *shim.ChaincodeStub, tableName string, columns []shim.Colum
 /*
  Get the customer id by PAN number
 */
-func GetCustomerID(stub *shim.ChaincodeStub, panId string) ([]string, error) {
+func GetCustomerID(stub shim.ChaincodeStubInterface, panId string) ([]string, error) {
 	var err error
 
 	// myLogger.Debugf("Get customer id for PAN : [%s]", panId)
@@ -205,12 +213,12 @@ func GetCustomerID(stub *shim.ChaincodeStub, panId string) ([]string, error) {
 	return custIdArray, nil
 }
 
-func GetCallerRole(stub *shim.ChaincodeStub)(string){
+func GetCallerRole(stub shim.ChaincodeStubInterface)(string){
 	callerRole, _ := stub.ReadCertAttribute("role")
 	return string(callerRole)
 }
 
-func GetVisibilityForCurrentUser(stub *shim.ChaincodeStub)(map[string]string){
+func GetVisibilityForCurrentUser(stub shim.ChaincodeStubInterface)(map[string]string){
 	callerRole := GetCallerRole(stub)
 
 	visibility := Helpdesk
@@ -224,7 +232,7 @@ func GetVisibilityForCurrentUser(stub *shim.ChaincodeStub)(map[string]string){
 	return visibility
 }
 
-func CanModifyIdentificationTable(stub *shim.ChaincodeStub)(bool){
+func CanModifyIdentificationTable(stub shim.ChaincodeStubInterface)(bool){
 	visibility := GetVisibilityForCurrentUser(stub)
 	// "IdentityNumber": "W",
 	// "PoiType":        "W",
@@ -235,7 +243,7 @@ func CanModifyIdentificationTable(stub *shim.ChaincodeStub)(bool){
 	return false
 }
 
-func CanModifyAddressTable(stub *shim.ChaincodeStub)(bool){
+func CanModifyAddressTable(stub shim.ChaincodeStubInterface)(bool){
 	visibility := GetVisibilityForCurrentUser(stub)
 	// "AddressId":      "W",
 	// "AddressType":    "W",
@@ -253,7 +261,7 @@ func CanModifyAddressTable(stub *shim.ChaincodeStub)(bool){
 	return false
 }
 
-func CanModifyCustomerTable(stub *shim.ChaincodeStub)(bool){
+func CanModifyCustomerTable(stub shim.ChaincodeStubInterface)(bool){
 	visibility := GetVisibilityForCurrentUser(stub)
 	// "FirstName":      "W",
 	// "LastName":       "W",
@@ -270,7 +278,7 @@ func CanModifyCustomerTable(stub *shim.ChaincodeStub)(bool){
 	return false
 }
 
-func CanModifyKYCTable(stub *shim.ChaincodeStub)(bool){
+func CanModifyKYCTable(stub shim.ChaincodeStubInterface)(bool){
 	visibility := GetVisibilityForCurrentUser(stub)
 	// "KycStatus":      "R",
 	// "KycRiskLevel":   "N",
@@ -296,4 +304,78 @@ func CanModifyKYCTable(stub *shim.ChaincodeStub)(bool){
 		return true
 	}
 	return false
+}
+
+
+func GetCustomerRecord(stub shim.ChaincodeStubInterface, customerId string)(string, string){
+	var err error
+	var identificationStr string
+	var customerStr string
+	var kycStr string
+	var addressStr string
+	var riskLevel string
+
+	identificationStr, err = GetIdentification(stub, customerId)
+	customerStr, err = GetCustomer(stub, customerId)
+	kycStr, riskLevel, err = GetKYC(stub, customerId)
+	addressStr, err = GetAddress(stub, customerId)
+
+	if err != nil{
+		myLogger.Debugf("Failed retriving customer details for : [%s], [%s]", customerId, err)
+	}
+
+	jsonResp := "{\"Identification\":" + identificationStr +
+		",\"PersonalDetails\":" + customerStr +
+		",\"KYC\":" + kycStr +
+		",\"address\":" + addressStr + "}"
+
+	return jsonResp, riskLevel
+}
+
+func GetCustomerData(stub shim.ChaincodeStubInterface, customerId string)(string){
+	jsonResp, riskLevel := GetCustomerRecord(stub, customerId)
+	allowedActions := GetPermissionMetadata(stub, riskLevel)
+
+	responseStr := "{\"data\":" + jsonResp + "," +
+		"\"visibility\":" + GetVisibility(GetCallerRole(stub)) + "," +
+		"\"allowedActions\":" + allowedActions + "}"
+	return responseStr
+}
+
+func GetPermissionMetadata(stub shim.ChaincodeStubInterface, riskLevel string)(string){
+	callerRole := GetCallerRole(stub)
+	allowedActions := "{\"updateKYCDocs\":\""
+
+	if riskLevel == "3"{
+		allowedActions = allowedActions + "true"
+	}else if riskLevel == "2"{
+		if callerRole == "Superadmin" || callerRole == "Manager" || callerRole == "RelationalManager"{
+			allowedActions = allowedActions + "true"
+		}else{
+			allowedActions = allowedActions + "false"
+		}
+	}else if riskLevel == "1"{
+		if callerRole == "Superadmin" || callerRole == "Manager"{
+			allowedActions = allowedActions + "true"
+		}else{
+			allowedActions = allowedActions + "false"
+		}
+	}
+	allowedActions = allowedActions + "\"}"
+	return allowedActions
+}
+
+func ConvertStructToMap(Cust Customer)(map[string]string){
+	allAttributes := map[string]string{
+		"FirstName":     Cust.PersonalDetails.FirstName,
+		"LastName":     Cust.PersonalDetails.LastName,
+		"Sex":     Cust.PersonalDetails.Sex,
+		"EmailId":     Cust.PersonalDetails.EmailId,
+		"Dob":     Cust.PersonalDetails.Dob,
+		"PhoneNumber":     Cust.PersonalDetails.PhoneNumber,
+		"Occupation":     Cust.PersonalDetails.Occupation,
+		"AnnualIncome":     Cust.PersonalDetails.AnnualIncome,
+		"IncomeSource":     Cust.PersonalDetails.IncomeSource,
+		"Source":     Cust.PersonalDetails.Source}
+	return allAttributes
 }

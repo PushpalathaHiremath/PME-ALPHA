@@ -28,7 +28,7 @@ type Kyc struct {
 /*
 	Create KYC table
 */
-func CreateKycTable(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func CreateKycTable(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// myLogger.Debug("Creating KYC Table...")
 	if len(args) != 0 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 0")
@@ -52,7 +52,7 @@ func CreateKycTable(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 /*
 	Add KYC record
 */
-func AddKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func AddKYC(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	myLogger.Debug("Adding KYC record ...")
 	// if len(args) != 5 {
 	// 	return nil, errors.New("Incorrect number of arguments. Expecting 5")
@@ -92,7 +92,7 @@ func AddKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 /*
 	Update KYC record
 */
-func UpdateKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
+func UpdateKYC(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	// myLogger.Debug("Updating KYC record ...")
 	var err error
 	// if len(args) != 5 {
@@ -135,7 +135,7 @@ func UpdateKYC(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
 /*
  Get KYC record
 */
-func GetKYC(stub *shim.ChaincodeStub, customerId string) (string, string, error) {
+func GetKYC(stub shim.ChaincodeStubInterface, customerId string) (string, string, error) {
 	var err error
 	// myLogger.Debugf("Get identification record for customer : [%s]", string(customerId))
 	var columns []shim.Column
