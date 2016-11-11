@@ -1,3 +1,0 @@
-FirstName|name
-LastName|name
-PhoneNumber|phone:home
