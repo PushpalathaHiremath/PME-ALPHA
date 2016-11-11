@@ -46,7 +46,7 @@ func readFile(fileName string)([]string , error){
 */
 func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	var err error
-	pme.BUCKET_CRITERIAS, err = readFile("bucket-criteria.txt")
+	pme.BUCKET_CRITERIAS, err = readFile("github.com/PushpalathaHiremath/PME/bucket-criteria.txt")
 	if err != nil{
 			myLogger.Debugf("Error reading bucket criteria configuration.",err)
 	}
@@ -57,7 +57,7 @@ func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function stri
 	}
 
 	pme.NICKNAMES = make(map[string]string)
-	nickNames,_ := readFile("nicknames.txt")
+	nickNames,err := readFile("nicknames.txt")
 	if err != nil{
 			myLogger.Debugf("Error reading nicknames dictionary.",err)
 	}
