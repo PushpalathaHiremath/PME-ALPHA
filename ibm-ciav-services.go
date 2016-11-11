@@ -45,22 +45,37 @@ func readFile(fileName string)([]string , error){
    Deploy KYC data model
 */
 func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	var err error
-	pme.BUCKET_CRITERIAS, err = readFile("github.com/PushpalathaHiremath/PME/bucket-criteria.txt")
-	if err != nil{
-			myLogger.Debugf("Error reading bucket criteria configuration.",err)
-	}
+	// var err error
+	// pme.BUCKET_CRITERIAS, err = readFile("./conf/bucket-criteria.txt")
+	// if err != nil{
+	// 		myLogger.Debugf("Error reading bucket criteria configuration.",err)
+	// }
+	pme.BUCKET_CRITERIAS = append(pme.BUCKET_CRITERIAS, "FirstName+LastName")
+	pme.BUCKET_CRITERIAS = append(pme.BUCKET_CRITERIAS, "FirstName+PhoneNumber")
+	pme.BUCKET_CRITERIAS = append(pme.BUCKET_CRITERIAS, "LastName+PhoneNumber")
 
-	pme.ANONYMOUS, err = readFile("anonymous.txt")
-	if err != nil{
-			myLogger.Debugf("Error reading anonymous dictionary.",err)
-	}
+	// pme.ANONYMOUS, err = readFile("./conf/anonymous.txt")
+	// if err != nil{
+	// 		myLogger.Debugf("Error reading anonymous dictionary.",err)
+	// }
+	pme.ANONYMOUS = append(pme.ANONYMOUS, "XXX")
+	pme.ANONYMOUS = append(pme.ANONYMOUS, "ZZZ")
+	pme.ANONYMOUS = append(pme.ANONYMOUS, "BOY")
+	pme.ANONYMOUS = append(pme.ANONYMOUS, "GIRL")
+
 
 	pme.NICKNAMES = make(map[string]string)
-	nickNames,err := readFile("nicknames.txt")
-	if err != nil{
-			myLogger.Debugf("Error reading nicknames dictionary.",err)
-	}
+	// nickNames,_ := readFile("./conf/nicknames.txt")
+	// if err != nil{
+	// 		myLogger.Debugf("Error reading nicknames dictionary.",err)
+	// }
+	var nickNames []string
+	nickNames = append(nickNames, "ADELAIDE=ALEY|ELA|ELKE|LAIDEY|LAIDY")
+	nickNames = append(nickNames, "BENJAMIN=JAMIE|BIN|BENN|JAMEY")
+	nickNames = append(nickNames, "MADELINE=MADGE|MADIE")
+	nickNames = append(nickNames, "JOHNSON=JOHNSUN|JONSON")
+	nickNames = append(nickNames, "JENKINSON=JANKINSON|JAINKINSUN|JENKINSUN|JANKINSUN")
+
 	for i := 0; i < len(nickNames); i++ {
 		if nickNames[i] != "" {
 			prop := strings.Split(nickNames[i], "=")
@@ -68,10 +83,14 @@ func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function stri
 		}
 	}
 
-	pme.COMPARISON_ATTR, err = readFile("comparison-attr.txt")
-	if err != nil{
-			myLogger.Debugf("Error reading comparison dictionary.",err)
-	}
+	// pme.COMPARISON_ATTR, err = readFile("./conf/comparison-attr.txt")
+	// if err != nil{
+	// 		myLogger.Debugf("Error reading comparison dictionary.",err)
+	// }
+	pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "FirstName|name")
+	pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "LastName|name")
+	pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "PhoneNumber|phone:home")
+
 
 	pme.InitMatching()
 	ciav.GetVisibility(ciav.GetCallerRole(stub))
