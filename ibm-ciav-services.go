@@ -46,18 +46,18 @@ func readFile(fileName string)([]string , error){
 */
 func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	var err error
-	pme.BUCKET_CRITERIAS, err = readFile("conf/bucket-criteria.txt")
+	pme.BUCKET_CRITERIAS, err = readFile("bucket-criteria.txt")
 	if err != nil{
 			myLogger.Debugf("Error reading bucket criteria configuration.",err)
 	}
 
-	pme.ANONYMOUS, err = readFile("conf/anonymous.txt")
+	pme.ANONYMOUS, err = readFile("anonymous.txt")
 	if err != nil{
 			myLogger.Debugf("Error reading anonymous dictionary.",err)
 	}
 
 	pme.NICKNAMES = make(map[string]string)
-	nickNames,_ := readFile("conf/nicknames.txt")
+	nickNames,_ := readFile("nicknames.txt")
 	if err != nil{
 			myLogger.Debugf("Error reading nicknames dictionary.",err)
 	}
@@ -68,7 +68,7 @@ func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function stri
 		}
 	}
 
-	pme.COMPARISON_ATTR, err = readFile("conf/comparison-attr.txt")
+	pme.COMPARISON_ATTR, err = readFile("comparison-attr.txt")
 	if err != nil{
 			myLogger.Debugf("Error reading comparison dictionary.",err)
 	}
