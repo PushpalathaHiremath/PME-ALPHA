@@ -176,12 +176,8 @@ func GetCustomer(stub shim.ChaincodeStubInterface, customerId string) (string, e
 
        	 myLogger.Debugf("Personal details ERROR : Not found : ", row)
 	
-	bytes, _ := json.Marshal(row)
-	if err != nil {
-		return "", errors.New("Error converting row to string")
-	}
 	// []byte("{[]}")
-	if bytes == nil {
+	if len(row.Columns) == 0 {
 	 	myLogger.Debugf("ERROR : Not found : ", customerId)
 		return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
 	 }
