@@ -174,10 +174,10 @@ func GetCustomer(stub shim.ChaincodeStubInterface, customerId string) (string, e
 	}
 
        	 myLogger.Debugf("Personal details ERROR : Not found : ", row)
-	// if row == [] {
-	 //	myLogger.Debugf("ERROR : Not found : ", customerId)
-	//	return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
-	 //}
+	if row == {[]} {
+	 	myLogger.Debugf("ERROR : Not found : ", customerId)
+		return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
+	 }
 	jsonResp := "{\"customerId\":\"" + row.Columns[0].GetString_() + "\"" +
 		",\"firstName\":\"" + row.Columns[1].GetString_() + "\"" +
 		",\"lastName\":\"" + row.Columns[2].GetString_() + "\"" +
