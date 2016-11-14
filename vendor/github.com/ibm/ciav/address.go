@@ -179,6 +179,11 @@ func GetAddress(stub shim.ChaincodeStubInterface, customerId string) (string, er
 		if i != 0 {
 			jsonRespBuffer.WriteString(",")
 		}
+		
+		if len(row.Columns) == 0 {
+		 	myLogger.Debugf("ERROR : Not found : ", customerId)
+			return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
+		 }
 		jsonRespBuffer.WriteString("{\"customerId\":\"" + row.Columns[0].GetString_() + "\"" +
 			",\"addressId\":\"" + row.Columns[1].GetString_() + "\"" +
 			",\"addressType\":\"" + row.Columns[2].GetString_() + "\"" +
