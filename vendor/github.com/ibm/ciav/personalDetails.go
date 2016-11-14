@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"encoding/json"
+	//"encoding/json"
 )
 
 type PersonalDetails struct {
