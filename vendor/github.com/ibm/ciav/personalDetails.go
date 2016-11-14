@@ -174,7 +174,7 @@ func GetCustomer(stub shim.ChaincodeStubInterface, customerId string) (string, e
 	}
 
        	 myLogger.Debugf("ERROR : Not found : ", row)
-	 if row == nil {
+	 if row == [] {
 	 	myLogger.Debugf("ERROR : Not found : ", customerId)
 		return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
 	 }
