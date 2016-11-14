@@ -179,7 +179,7 @@ func GetCustomer(stub shim.ChaincodeStubInterface, customerId string) (string, e
 	
 	bytes, _ := json.Marshal(row)
 	if err != nil {
-		return nil, errors.New("Error converting kyc record")
+		return "", errors.New("Error converting row to string")
 	}
 	// []byte("{[]}")
 	if bytes == nil {
