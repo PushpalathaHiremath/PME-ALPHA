@@ -224,6 +224,11 @@ func GetIdentification(stub shim.ChaincodeStubInterface, customerId string) (str
 		if i != 0 {
 			jsonRespBuffer.WriteString(",")
 		}
+		
+		if len(row.Columns) == 0 {
+	 		myLogger.Debugf("ERROR : Not found : ", customerId)
+			return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
+	 	}
 		jsonRespBuffer.WriteString("{\"CustomerId\":\"" + row.Columns[0].GetString_() + "\"" +
 			",\"IdentityNumber\":\"" + row.Columns[1].GetString_() + "\"" +
 			",\"PoiType\":\"" + row.Columns[2].GetString_() + "\"" +
