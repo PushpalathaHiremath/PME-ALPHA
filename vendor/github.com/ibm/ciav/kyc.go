@@ -147,6 +147,10 @@ func GetKYC(stub shim.ChaincodeStubInterface, customerId string) (string, string
 	if err != nil {
 		return "", "",fmt.Errorf("Failed retriving KYC details [%s]: [%s]", string(customerId), err)
 	}
+	if len(row.Columns) == 0 {
+	 	myLogger.Debugf("ERROR : Not found : ", customerId)
+		return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
+	}
 	jsonResp := "{\"customerId\":\"" + row.Columns[1].GetString_() + "\"" +
 		",\"kycStatus\":\"" + row.Columns[2].GetString_() + "\"" +
 		",\"lastUpdated\":\"" + row.Columns[3].GetString_() + "\""
