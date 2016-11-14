@@ -181,8 +181,8 @@ func GetCustomer(stub shim.ChaincodeStubInterface, customerId string) (string, e
 	if err != nil {
 		return nil, errors.New("Error converting kyc record")
 	}
-	
-	if bytes == []byte("{[]}") {
+	// []byte("{[]}")
+	if bytes == nil {
 	 	myLogger.Debugf("ERROR : Not found : ", customerId)
 		return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
 	 }
