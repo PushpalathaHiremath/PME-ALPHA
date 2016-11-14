@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"encoding/json"
+	"bytes"
 )
 
 type PersonalDetails struct {
@@ -174,7 +176,13 @@ func GetCustomer(stub shim.ChaincodeStubInterface, customerId string) (string, e
 	}
 
        	 myLogger.Debugf("Personal details ERROR : Not found : ", row)
-	if row == {[]} {
+	
+	bytes, _ := json.Marshal(row)
+	if err != nil {
+		return nil, errors.New("Error converting kyc record")
+	}
+	
+	if bytes == []byte("{[]}") {
 	 	myLogger.Debugf("ERROR : Not found : ", customerId)
 		return "", fmt.Errorf("Failed retriving Customer details [%s]: [%s]", string(customerId), err)
 	 }
