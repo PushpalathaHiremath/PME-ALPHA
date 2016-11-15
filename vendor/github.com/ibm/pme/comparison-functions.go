@@ -256,15 +256,19 @@ func GetCriticalDataModified(stub shim.ChaincodeStubInterface, CustB ciav.Custom
 	CustomerA := ciav.ConvertStructToMap(CustA)
 	CustomerB := ciav.ConvertStructToMap(CustB)
 	for k, v := range CRITICAL_DATA {
+		myLogger.Debugf("Attribute  : ",k)
 		myLogger.Debugf("CustomerA : ",CustomerA[k])
 		myLogger.Debugf("CustomerB : ",CustomerB[k])
-		if CustomerA[k] != CustomerB[k] {
+
+		val := strings.Split(v, "|")
+		attrValB := StandardizeData(CustomerB[k], val[1])
+
+		if CustomerA[k] != attrValB {
 			myLogger.Debugf("Not Equal . . .")
-			val := strings.Split(v, "|")
-			attrVal := StandardizeData(CustomerB[k], val[1])
 			UPDATED_ATTRIBUTES[k] = attrVal
+		}else{
+			myLogger.Debugf("Equal . . .")
 		}
-		myLogger.Debugf("Equal . . .")
 	}
 	return UPDATED_ATTRIBUTES, nil
 }
