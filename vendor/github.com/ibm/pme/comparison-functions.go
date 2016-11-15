@@ -246,7 +246,9 @@ func getEDScore(str1 string, str2 string, m int, n int) int {
 */
 func GetCriticalDataModified(stub shim.ChaincodeStubInterface, CustB ciav.Customer) (map[string]string, error) {
 	UPDATED_ATTRIBUTES = make(map[string]string)
-	CustomerAJSON := ciav.GetCustomerData(stub, CustB.PersonalDetails.CustomerId)
+	CustomerAJSON,_ := ciav.GetCustomerRecord(stub, CustB.PersonalDetails.CustomerId)
+	myLogger.Debugf("Customer ID : ", CustB.PersonalDetails.CustomerId)
+	myLogger.Debugf("Stored Customer Data : ", CustomerAJSON)
 	var CustA ciav.Customer
 	err := json.Unmarshal([]byte(CustomerAJSON), &CustA)
 	if err != nil {
