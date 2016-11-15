@@ -267,7 +267,7 @@ func GetCriticalDataModified(stub shim.ChaincodeStubInterface, CustB ciav.Custom
 
 		if CustomerA[k] != attrValB {
 			myLogger.Debugf("Not Equal . . .")
-			UPDATED_ATTRIBUTES[k] = attrVal
+			UPDATED_ATTRIBUTES[k] = attrValB
 		}else{
 			myLogger.Debugf("Equal . . .")
 		}
