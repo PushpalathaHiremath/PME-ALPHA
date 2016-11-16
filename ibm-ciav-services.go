@@ -185,8 +185,12 @@ func getConfiguration(stub shim.ChaincodeStubInterface)(error){
 			anonymousStr, a_err := stub.GetState("anonymous")
 		  pme.ANONYMOUS = strings.Split(string(anonymousStr), "|")
 
-			comparisinAttrsStr, ca_err := stub.GetState("comparison-attributes")
-			pme.COMPARISON_ATTR = strings.Split(string(comparisinAttrsStr), "+")
+			// comparisinAttrsStr, ca_err := stub.GetState("comparison-attributes")
+			// pme.COMPARISON_ATTR = strings.Split(string(comparisinAttrsStr), "+")
+
+			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "FirstName|name")
+			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "LastName|name")
+			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "PhoneNumber|phone:home")
 
 			nickNamesStr, n_err := stub.GetState("nickNames")
 		  nickNames := strings.Split(string(nickNamesStr), "|")
