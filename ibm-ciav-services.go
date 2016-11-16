@@ -204,7 +204,7 @@ func getConfiguration(stub shim.ChaincodeStubInterface)(error){
 				}
 			}
 
-			if bc_err != nil || a_err != nil || ca_err != nil || n_err != nil {
+			if bc_err != nil || a_err != nil || n_err != nil {
 				return errors.New("ERROR : Fetching configurations.")
 			}
 
