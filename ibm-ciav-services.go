@@ -45,52 +45,10 @@ func readFile(fileName string)([]string , error){
    Deploy KYC data model
 */
 func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	// var err error
-	// pme.BUCKET_CRITERIAS, err = readFile("./conf/bucket-criteria.txt")
-	// if err != nil{
-	// 		myLogger.Debugf("Error reading bucket criteria configuration.",err)
-	// }
-	pme.BUCKET_CRITERIAS = append(pme.BUCKET_CRITERIAS, "FirstName+LastName")
-	pme.BUCKET_CRITERIAS = append(pme.BUCKET_CRITERIAS, "FirstName+PhoneNumber")
-	pme.BUCKET_CRITERIAS = append(pme.BUCKET_CRITERIAS, "LastName+PhoneNumber")
-
-	// pme.ANONYMOUS, err = readFile("./conf/anonymous.txt")
-	// if err != nil{
-	// 		myLogger.Debugf("Error reading anonymous dictionary.",err)
-	// }
-	pme.ANONYMOUS = append(pme.ANONYMOUS, "XXX")
-	pme.ANONYMOUS = append(pme.ANONYMOUS, "ZZZ")
-	pme.ANONYMOUS = append(pme.ANONYMOUS, "BOY")
-	pme.ANONYMOUS = append(pme.ANONYMOUS, "GIRL")
-
-
-	pme.NICKNAMES = make(map[string]string)
-	// nickNames,_ := readFile("./conf/nicknames.txt")
-	// if err != nil{
-	// 		myLogger.Debugf("Error reading nicknames dictionary.",err)
-	// }
-	var nickNames []string
-	nickNames = append(nickNames, "ADELAIDE=ALEY|ELA|ELKE|LAIDEY|LAIDY")
-	nickNames = append(nickNames, "BENJAMIN=JAMIE|BIN|BENN|JAMEY")
-	nickNames = append(nickNames, "MADELINE=MADGE|MADIE")
-	nickNames = append(nickNames, "JOHNSON=JOHNSUN|JONSON")
-	nickNames = append(nickNames, "JENKINSON=JANKINSON|JAINKINSUN|JENKINSUN|JANKINSUN")
-
-	for i := 0; i < len(nickNames); i++ {
-		if nickNames[i] != "" {
-			prop := strings.Split(nickNames[i], "=")
-			pme.NICKNAMES[strings.TrimSpace(prop[0])]=strings.TrimSpace(prop[1])
-		}
-	}
-
-	// pme.COMPARISON_ATTR, err = readFile("./conf/comparison-attr.txt")
-	// if err != nil{
-	// 		myLogger.Debugf("Error reading comparison dictionary.",err)
-	// }
-	pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "FirstName|name")
-	pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "LastName|name")
-	pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "PhoneNumber|phone:home")
-
+	stub.PutState("bucket-criteria", "FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber")
+	stub.PutState("anonymous", "XXX|ZZZ|GIRL1|GIRL2|GIRL3|XXXXXXXXXXXX|XXXXXX|XXXXXXX|XXXXXXXXXX|BABY|BB10|BBOY|BG10|BOY1|BOY2|BOY3|INVALID|FATHER|GIRL|MALE|DUPLICATE|TEST|TWIN|UNKNOWN|XXXXXXXXX|XXXXXXXX|XXXX|ZZZZ|MOTHER|SPOUSE|XXXXX|BABYBOY|DEPENDENT|BABYGIRL|TRAUMA|BGIRL|XXXXXXXXXXX|NOFIRSTNAME|NEWBORN|NOLASTNAME")
+	stub.PutState("nickNames", "ADELAIDE=ALEY+ELA+ELKE+LAIDEY+LAIDY|BENJAMIN=JAMIE+BIN+BENN+JAMEY|MADELINE=MADGE+MADIE|JOHNSON=JOHNSUN+JONSON|JENKINSON=JANKINSON+JAINKINSUN+JENKINSUN+JANKINSUN")
+	stub.PutState("comparison-attributes", "FirstName|name+LastName|name+PhoneNumber|phone:home")
 
 	pme.InitMatching()
 	ciav.GetVisibility(ciav.GetCallerRole(stub))
@@ -206,6 +164,7 @@ func (t *ServicesChaincode) updateCIAV(stub shim.ChaincodeStubInterface, args []
 */
 func (t *ServicesChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
+	getConfiguration();
 	if function == "addCIAV" {
 		// add customer
 		return t.addCIAV(stub, args)
@@ -213,8 +172,30 @@ func (t *ServicesChaincode) Invoke(stub shim.ChaincodeStubInterface, function st
 		// update customer
 		return t.updateCIAV(stub, args)
 	}
-
 	return nil, errors.New("Received unknown function invocation")
+}
+
+func getConfiguration()(){
+			bucketCriteriaStr, bc_err := stub.GetState("bucket-criteria")
+		  pme.BUCKET_CRITERIAS := strings.Split(bucketCriteriaStr, "|")
+
+			anonymousStr, a_err := stub.GetState("anonymous")
+		  pme.ANONYMOUS := strings.Split(anonymousStr, "|")
+
+			comparisinAttrsStr, a_err := stub.GetState("comparison-attributes")
+			pme.COMPARISON_ATTR := strings.Split(comparisinAttrsStr, "+")
+
+			nickNamesStr, n_err := stub.GetState("nickNames")
+		  nickNames := strings.Split(nickNamesStr, "|")
+
+			pme.NICKNAMES = make(map[string]string)
+
+			for i := 0; i < len(nickNames); i++ {
+				if nickNames[i] != "" {
+					prop := strings.Split(nickNames[i], "=")
+					pme.NICKNAMES[strings.TrimSpace(prop[0])]=strings.TrimSpace(prop[1])
+				}
+			}
 }
 
 /*
