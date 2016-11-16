@@ -165,9 +165,11 @@ func (t *ServicesChaincode) updateCIAV(stub shim.ChaincodeStubInterface, args []
 */
 func (t *ServicesChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
-	err := getConfiguration(stub);
-	if err != nil{
-		return nil, fmt.Errorf("Failed retriving configurations [%s]", err)
+	if len(pme.COMPARISON_ATTR) == 0{
+		err := getConfiguration(stub);
+		if err != nil{
+			return nil, fmt.Errorf("Failed retriving configurations [%s]", err)
+		}
 	}
 
 	if function == "addCIAV" {
