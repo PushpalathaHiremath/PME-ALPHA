@@ -186,6 +186,10 @@ func UpdateBuckets(stub shim.ChaincodeStubInterface, CustomerId string, data str
 				}
 				bucket_key = bucket_key + tval
 		}
+		myLogger.Debugf("Bucket data ")
+		myLogger.Debugf("Type : ", op_type)
+		myLogger.Debugf("bucket : ", bucket)
+		myLogger.Debugf("bucket_key : ", bucket_key)
 		if op_type == "add"{
 			AddToBkt(stub, bucket, CustomerId, bucket_key)
 		}else if op_type == "update" {
