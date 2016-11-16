@@ -47,7 +47,7 @@ func readFile(fileName string)([]string , error){
 func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	stub.PutState("bucket-criteria", []byte("FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber"))
 	stub.PutState("anonymous", []byte("XXX|ZZZ|GIRL1|GIRL2|GIRL3|XXXXXXXXXXXX|XXXXXX|XXXXXXX|XXXXXXXXXX|BABY|BB10|BBOY|BG10|BOY1|BOY2|BOY3|INVALID|FATHER|GIRL|MALE|DUPLICATE|TEST|TWIN|UNKNOWN|XXXXXXXXX|XXXXXXXX|XXXX|ZZZZ|MOTHER|SPOUSE|XXXXX|BABYBOY|DEPENDENT|BABYGIRL|TRAUMA|BGIRL|XXXXXXXXXXX|NOFIRSTNAME|NEWBORN|NOLASTNAME"))
-	stub.PutState("nickNames", []byte("ADELAIDE=ALEY|ELA|ELKE|LAIDEY|LAIDY+BENJAMIN=JAMIE|BIN|BENN|JAMEY+MADELINE=MADGE|MADIE+JOHNSON=JOHNSUN|JONSON+JENKINSON=JANKINSON|JAINKINSUN|JENKINSUN|JANKINSUN"))
+	stub.PutState("nickNames", []byte("ADELAIDE=ALEY|ELA|ELKE|LAIDEY|LAIDY+BENJAMIN=JAMIE|BIN|BENN|JAMEY+MADELINE=MADGE|MADIE+JOHNSON=JOHNSUN|JONSON|JONSUN+JENKINSON=JANKINSON|JAINKINSUN|JENKINSUN|JANKINSUN"))
 	stub.PutState("comparison-attributes", []byte("FirstName|name+LastName|name+PhoneNumber|phone:home"))
 
 	pme.BUCKET_CRITERIAS = strings.Split("FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber", "|")
