@@ -45,10 +45,10 @@ func readFile(fileName string)([]string , error){
    Deploy KYC data model
 */
 func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	stub.PutState("bucket-criteria", "FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber")
-	stub.PutState("anonymous", "XXX|ZZZ|GIRL1|GIRL2|GIRL3|XXXXXXXXXXXX|XXXXXX|XXXXXXX|XXXXXXXXXX|BABY|BB10|BBOY|BG10|BOY1|BOY2|BOY3|INVALID|FATHER|GIRL|MALE|DUPLICATE|TEST|TWIN|UNKNOWN|XXXXXXXXX|XXXXXXXX|XXXX|ZZZZ|MOTHER|SPOUSE|XXXXX|BABYBOY|DEPENDENT|BABYGIRL|TRAUMA|BGIRL|XXXXXXXXXXX|NOFIRSTNAME|NEWBORN|NOLASTNAME")
-	stub.PutState("nickNames", "ADELAIDE=ALEY+ELA+ELKE+LAIDEY+LAIDY|BENJAMIN=JAMIE+BIN+BENN+JAMEY|MADELINE=MADGE+MADIE|JOHNSON=JOHNSUN+JONSON|JENKINSON=JANKINSON+JAINKINSUN+JENKINSUN+JANKINSUN")
-	stub.PutState("comparison-attributes", "FirstName|name+LastName|name+PhoneNumber|phone:home")
+	stub.PutState("bucket-criteria", []byte("FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber"))
+	stub.PutState("anonymous", []byte("XXX|ZZZ|GIRL1|GIRL2|GIRL3|XXXXXXXXXXXX|XXXXXX|XXXXXXX|XXXXXXXXXX|BABY|BB10|BBOY|BG10|BOY1|BOY2|BOY3|INVALID|FATHER|GIRL|MALE|DUPLICATE|TEST|TWIN|UNKNOWN|XXXXXXXXX|XXXXXXXX|XXXX|ZZZZ|MOTHER|SPOUSE|XXXXX|BABYBOY|DEPENDENT|BABYGIRL|TRAUMA|BGIRL|XXXXXXXXXXX|NOFIRSTNAME|NEWBORN|NOLASTNAME"))
+	stub.PutState("nickNames", []byte("ADELAIDE=ALEY+ELA+ELKE+LAIDEY+LAIDY|BENJAMIN=JAMIE+BIN+BENN+JAMEY|MADELINE=MADGE+MADIE|JOHNSON=JOHNSUN+JONSON|JENKINSON=JANKINSON+JAINKINSUN+JENKINSUN+JANKINSUN"))
+	stub.PutState("comparison-attributes", []byte("FirstName|name+LastName|name+PhoneNumber|phone:home"))
 
 	pme.InitMatching()
 	ciav.GetVisibility(ciav.GetCallerRole(stub))
@@ -164,7 +164,11 @@ func (t *ServicesChaincode) updateCIAV(stub shim.ChaincodeStubInterface, args []
 */
 func (t *ServicesChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
-	getConfiguration();
+	err := getConfiguration(stub);
+	if err != nil{
+		return nil, fmt.Errorf("Failed retriving configurations [%s]", err)
+	}
+
 	if function == "addCIAV" {
 		// add customer
 		return t.addCIAV(stub, args)
@@ -175,18 +179,18 @@ func (t *ServicesChaincode) Invoke(stub shim.ChaincodeStubInterface, function st
 	return nil, errors.New("Received unknown function invocation")
 }
 
-func getConfiguration()(){
+func getConfiguration(stub shim.ChaincodeStubInterface)(error){
 			bucketCriteriaStr, bc_err := stub.GetState("bucket-criteria")
-		  pme.BUCKET_CRITERIAS := strings.Split(bucketCriteriaStr, "|")
+		  pme.BUCKET_CRITERIAS = strings.Split(string(bucketCriteriaStr), "|")
 
 			anonymousStr, a_err := stub.GetState("anonymous")
-		  pme.ANONYMOUS := strings.Split(anonymousStr, "|")
+		  pme.ANONYMOUS = strings.Split(string(anonymousStr), "|")
 
-			comparisinAttrsStr, a_err := stub.GetState("comparison-attributes")
-			pme.COMPARISON_ATTR := strings.Split(comparisinAttrsStr, "+")
+			comparisinAttrsStr, ca_err := stub.GetState("comparison-attributes")
+			pme.COMPARISON_ATTR = strings.Split(string(comparisinAttrsStr), "+")
 
 			nickNamesStr, n_err := stub.GetState("nickNames")
-		  nickNames := strings.Split(nickNamesStr, "|")
+		  nickNames := strings.Split(string(nickNamesStr), "|")
 
 			pme.NICKNAMES = make(map[string]string)
 
@@ -196,6 +200,11 @@ func getConfiguration()(){
 					pme.NICKNAMES[strings.TrimSpace(prop[0])]=strings.TrimSpace(prop[1])
 				}
 			}
+
+			if bc_err != nil || a_err != nil || ca_err != nil || n_err != nil {
+				return errors.New("ERROR : Fetching configurations.")
+			}
+			return nil
 }
 
 /*
