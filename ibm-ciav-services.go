@@ -50,6 +50,8 @@ func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function stri
 	stub.PutState("nickNames", []byte("ADELAIDE=ALEY+ELA+ELKE+LAIDEY+LAIDY|BENJAMIN=JAMIE+BIN+BENN+JAMEY|MADELINE=MADGE+MADIE|JOHNSON=JOHNSUN+JONSON|JENKINSON=JANKINSON+JAINKINSUN+JENKINSUN+JANKINSUN"))
 	stub.PutState("comparison-attributes", []byte("FirstName|name+LastName|name+PhoneNumber|phone:home"))
 
+	pme.BUCKET_CRITERIAS = strings.Split("FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber", "|")
+
 	ciav.GetVisibility(ciav.GetCallerRole(stub))
 	ciav.CreateIdentificationTable(stub, args)
 	ciav.CreateCustomerTable(stub, args)
