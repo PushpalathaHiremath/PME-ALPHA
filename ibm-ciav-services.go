@@ -50,7 +50,6 @@ func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function stri
 	stub.PutState("nickNames", []byte("ADELAIDE=ALEY+ELA+ELKE+LAIDEY+LAIDY|BENJAMIN=JAMIE+BIN+BENN+JAMEY|MADELINE=MADGE+MADIE|JOHNSON=JOHNSUN+JONSON|JENKINSON=JANKINSON+JAINKINSUN+JENKINSUN+JANKINSUN"))
 	stub.PutState("comparison-attributes", []byte("FirstName|name+LastName|name+PhoneNumber|phone:home"))
 
-	pme.InitMatching()
 	ciav.GetVisibility(ciav.GetCallerRole(stub))
 	ciav.CreateIdentificationTable(stub, args)
 	ciav.CreateCustomerTable(stub, args)
@@ -204,6 +203,8 @@ func getConfiguration(stub shim.ChaincodeStubInterface)(error){
 			if bc_err != nil || a_err != nil || ca_err != nil || n_err != nil {
 				return errors.New("ERROR : Fetching configurations.")
 			}
+
+			pme.InitMatching()
 			return nil
 }
 
