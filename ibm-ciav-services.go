@@ -21,6 +21,7 @@ import (
 
 var myLogger = logging.MustGetLogger("customer_details")
 var dummyValue = "99999"
+var BKT_CRITERIA_DEFINITION = "FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber|FirstName+DOB1|LastName+DOB1|FirstName+DOB2|LastName+DOB2"
 
 type ServicesChaincode struct {
 }
@@ -45,12 +46,12 @@ func readFile(fileName string)([]string , error){
    Deploy KYC data model
 */
 func (t *ServicesChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
-	stub.PutState("bucket-criteria", []byte("FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber"))
+	stub.PutState("bucket-criteria", []byte(BKT_CRITERIA_DEFINITION))
 	stub.PutState("anonymous", []byte("XXX|ZZZ|GIRL1|GIRL2|GIRL3|XXXXXXXXXXXX|XXXXXX|XXXXXXX|XXXXXXXXXX|BABY|BB10|BBOY|BG10|BOY1|BOY2|BOY3|INVALID|FATHER|GIRL|MALE|DUPLICATE|TEST|TWIN|UNKNOWN|XXXXXXXXX|XXXXXXXX|XXXX|ZZZZ|MOTHER|SPOUSE|XXXXX|BABYBOY|DEPENDENT|BABYGIRL|TRAUMA|BGIRL|XXXXXXXXXXX|NOFIRSTNAME|NEWBORN|NOLASTNAME"))
 	stub.PutState("nickNames", []byte("WILLIAM=BILL+ADELAIDE=ALEY|ELA|ELKE|LAIDEY|LAIDY+BENJAMIN=JAMIE|BIN|BENN|JAMEY+MADELINE=MADGE|MADIE+JOHNSON=JOHNSUN|JONSON|JONSUN+JENKINSON=JANKINSON|JAINKINSUN|JENKINSUN|JANKINSUN"))
-	stub.PutState("comparison-attributes", []byte("FirstName|name+LastName|name+PhoneNumber|phone:home"))
+	stub.PutState("comparison-attributes", []byte("FirstName|name+LastName|name+PhoneNumber|phone:home+DOB|date"))
 
-	pme.BUCKET_CRITERIAS = strings.Split("FirstName+LastName|FirstName+PhoneNumber|LastName+PhoneNumber", "|")
+	pme.BUCKET_CRITERIAS = strings.Split(BKT_CRITERIA_DEFINITION, "|")
 
 	ciav.GetVisibility(ciav.GetCallerRole(stub))
 	ciav.CreateIdentificationTable(stub, args)
@@ -195,6 +196,8 @@ func getConfiguration(stub shim.ChaincodeStubInterface)(error){
 			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "FirstName|name")
 			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "LastName|name")
 			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "PhoneNumber|phone:home")
+			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "DOB1|date1")
+			pme.COMPARISON_ATTR = append(pme.COMPARISON_ATTR, "DOB2|date2")
 
 			nickNamesStr, n_err := stub.GetState("nickNames")
 		  nickNames := strings.Split(string(nickNamesStr), "+")
