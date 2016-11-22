@@ -33,16 +33,6 @@ func Standardize(Cust ciav.Customer) string {
 		}
 		data = data + attrVal
 	}
-
-	// for k, v := range CRITICAL_DATA {
-	// 	val := strings.Split(v, "|")
-	// 	myLogger.Debugf("Attributes : ", k, val[1])
-	// 	attrVal := StandardizeData(custData[k], val[1])
-	// 	if data != "" {
-	// 		data = data + "~"
-	// 	}
-	// 	data = data + attrVal
-	// }
 	myLogger.Debugf("Critical data : ", data)
 	return data
 }
@@ -64,6 +54,10 @@ func StandardizeData(attrVal string, attrType string) string {
 		return StandardizePhoneNumber(attrVal, 5)
 	case "id":
 		return StandardizeID(attrVal)
+	case "date2":
+		return StandardizeDate(attrVal, "yearOnly")
+	case "date1":
+		return StandardizeDate(attrVal, "yearAndMOnth")
 	default:
 		myLogger.Errorf("ERROR: unrecognized attribute type in comparision element configuration. Please modify and try again.")
 	}
@@ -120,6 +114,18 @@ func StandardizeID(id string) string {
 	id = trimID(id)
 	id, _ = sortStr(id)
 	return id
+}
+
+
+func StandardizeDate(date string, dateType string) (string) {
+	// Trim spaces and special charecters
+	dateArr := strings.Split(date, "/")
+	if dateType == "yearOnly"{
+		return dateArr[1] + dateArr[2]
+	}else if dateType == "yearAndMOnth"{
+		return dateArr[2]
+	}
+	return date
 }
 
 /*
@@ -352,6 +358,10 @@ func StandardizeL2(attr_val string, attr_type string) (string) {
 		return standardizeL2Ph(attr_val)
 	case "phone:mob":
 		return standardizeL2Ph(attr_val)
+	case "date1":
+		return attr_val
+	case "date2":
+		return attr_val
 	default:
 		myLogger.Errorf("ERROR: unrecognized attribute type in comparision element configuration. Please modify and try again.")
 	}
